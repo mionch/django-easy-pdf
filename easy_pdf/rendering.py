@@ -13,6 +13,7 @@ from django.utils.six import BytesIO
 
 import xhtml2pdf.default
 from xhtml2pdf import pisa
+from xhtml2pdf.pdf import pisaPDF
 
 from .exceptions import UnsupportedMediaPathException, PDFRenderingError
 
@@ -75,6 +76,16 @@ def html_to_pdf(content, encoding="utf-8",
             if entry[0] == xhtml2pdf.default.PML_WARNING:
                 logger_x2p.warning("line %s, msg: %s, fragment: %s", entry[1], entry[2], entry[3])
 
+    prepend_files = kwargs.get('prepend_files', [])
+    append_files = kwargs.get('append_files', [])
+    if prepend_files or append_files:
+        base_pdf = pisaPDF()
+        for filename in prepend_files:
+            base_pdf.addFromFileName(filename)
+        base_pdf.addFromString(dest.getvalue())
+        for filename in append_files:
+            base_pdf.addFromFileName(filename)
+        return base_pdf.getvalue()
     return dest.getvalue()
 
 
